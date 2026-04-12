@@ -1,4 +1,4 @@
-# StarTrack·星途（MICE1901）
+# StarTrack·星途
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](#)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](#)
@@ -7,6 +7,8 @@
 [![Git LFS](https://img.shields.io/badge/Git-LFS-F05133?style=flat-square&logo=gitlfs&logoColor=white)](#)
 
 下面按 **「必做 → 选做」** 写，避免读起来前后打架：**必做** 是克隆本仓库后想正常打开页面、播视频就离不开的步骤；**选做** 只有在你明确要用云端、真地图、真推送时才需要，不做也能做界面演示和录屏。
+
+**环境与命令说明**：全文以 **Windows 10 / Windows 11** 为准；命令请在 **PowerShell**、**命令提示符（cmd）** 或安装 [Git for Windows](https://git-scm.com/download/win) 后自带的 **Git Bash** 中执行（任选其一即可）。
 
 ---
 
@@ -20,7 +22,7 @@
 
 | 类别 | 要做什么 | 不做会怎样 |
 | :--- | :--- | :--- |
-| **必做** | 安装 **Git**、**Git LFS** → 克隆仓库 → 在仓库根目录执行 **`git lfs pull`** | `index.html` 或 **`会展地图高保真/` 里的 mp4 等视频** 可能仍是 **LFS 指针**，页面空白、视频黑屏或无法播放。本仓库里 **上传的一批 mp4 等媒体文件走 Git LFS**，不拉 LFS 就**没有**真实二进制。 |
+| **必做** | 安装 **Git**、**Git LFS** 后，按 **第 4.2 节** **从 `git --version` 到 `git lfs pull` 逐条执行** | `index.html` 或 **`会展地图高保真/` 里的 mp4 等视频** 可能仍是 **LFS 指针**，页面空白、视频黑屏或无法播放。本仓库里 **上传的一批 mp4 等媒体文件走 Git LFS**，不拉 LFS 就**没有**真实二进制。 |
 | **选做：高德 Web 地图** | 在 **`index.html`** 填写有效的 **`STARTRACK_AMAP_KEY`**（见 [第 5.2 节](#52-高德地图开放平台与-key)） | 页内 **嵌入式地图**（`AMap`）不加载；**不影响**多数页面点选、文案、本地会话。 |
 | **选做：Firebase** | 按 [第 5 节](#5-配置指南) 配置 **`firebaseConfig`**（`index.html` 与 **`firebase-messaging-sw.js`** 两处一致）并开通 Firestore / FCM 等 | **Firestore 写入/读取、FCM 推送** 不可用；控制台常见初始化报错；**多数纯前端界面仍可浏览、录屏**。 |
 | **选做：本地 HTTP** | 用 Node / Python 等在仓库根起 **`localhost`** 或 **HTTPS** 静态服务（见 [第 4.3 节](#43-在仓库根目录启动本地-http-服务)） | 仅用 **`file://` 双击打开** 时，**Service Worker 不会注册**，**FCM 无法按完整链路测试**；其余与是否配 Firebase / 高德独立。 |
@@ -66,82 +68,179 @@
 
 ### 4.1 环境与工具
 
-*   **操作系统**：Windows / macOS / Linux。
-*   **浏览器**：推荐 **Chrome** 或 **Edge（Chromium）**，便于看 **Console** 与 **Service Worker**。
-*   **Git**：[下载](https://git-scm.com/downloads)。
-*   **Git LFS**（**必装**）：[Git LFS 官网](https://git-lfs.com/)。本仓库 **视频等媒体（含 `会展地图高保真/` 下 mp4）通过 LFS 上传**，无 LFS 或未完成拉取则无法得到可播放文件。
-*   **可选 Node.js / Python 3**：用于 [第 4.3 节](#43-在仓库根目录启动本地-http-服务) 起本地 HTTP。
+*   **操作系统**：**Windows 10 或 Windows 11**（下文命令均在此环境下验证思路编写）。
+*   **浏览器**：推荐 **Microsoft Edge** 或 **Google Chrome**（Windows 版），便于打开 **开发者工具** 查看 **Console** 与 **Service Worker**。
+*   **Git for Windows**：[下载安装](https://git-scm.com/download/win)，安装时若勾选 **Git LFS** 可少装一步；未勾选则须再装 **Git LFS**（见下节）。
+*   **Git LFS**（**必装**）：本仓库 **视频等媒体（含 `会展地图高保真/` 下 mp4）通过 LFS 上传**，无 LFS 或未完成拉取则无法得到可播放文件。完整命令见 **第 4.2 节**。
+*   **可选 Node.js（Windows 安装包）**：用于 [第 4.3 节](#43-在仓库根目录启动本地-http-服务) 中的 `npx`（[官网下载](https://nodejs.org/)）。
+*   **可选 Python 3（Windows 安装包）**：用于同节中的 `python` / `py` 启动简易 HTTP 服务（[官网下载](https://www.python.org/downloads/windows/)）。
 *   **网络**：需能访问 Tailwind、Font Awesome、Firebase、高德等 **CDN**。
 
-### 4.2 Git LFS 安装与拉取
+### 4.2 Git 与 Git LFS：完整命令步骤
 
 **原因**：`.gitattributes` 将 **`会展地图高保真/` 下 mp4 等** 以及可能的其他大文件标为 **LFS**。克隆后仓库里先是 **文本指针**；执行 **`git lfs pull`** 后才会在本机出现 **真实 mp4 二进制**，页面里的 `<video src="./会展地图高保真/...">` 才能播。若 **`index.html` 等也被列入 LFS**（以 `.gitattributes` 为准），未拉取时同样可能几乎空白。
 
-**安装 Git LFS**
+以下命令均在 **PowerShell / cmd / Git Bash** 中逐条输入；**每行是一条完整命令**，回车执行后再输入下一条（方括号里是说明，**不要**把方括号打进命令里）。
 
 *   **Windows**：官网安装包，装完**重开终端**。
 *   **macOS**：`brew install git-lfs`
 *   **Linux（Debian/Ubuntu）**：`sudo apt install git-lfs`
 
-**全局启用（每台机一次）**
+**（一）先装好 Git LFS 程序本体（任选一种，只做一次）**
+
+*   **方式 A**：打开 [git-lfs.com](https://git-lfs.com/)，下载 **Windows `.exe` 安装包**，双击安装。  
+*   **方式 B**：在 **PowerShell** 执行：`winget install GitHub.GitLFS`  
+*   **方式 C**：安装 [Git for Windows](https://git-scm.com/download/win) 时勾选 **Git LFS** 组件。
+
+装完后**关掉窗口再新开** PowerShell / cmd / Git Bash，再继续下面「（二）」。
+
+---
+
+**（二）确认 Git 与 Git LFS 能在命令行里被调用**
+
+```bash
+git --version
+```
+
+```bash
+git lfs version
+```
+
+若第二条报错「不是内部或外部命令」，说明 **Git LFS 未装好或未进 PATH**，请回到（一）重装后再试。
+
+---
+
+**（三）在本机启用 Git LFS 钩子（每台 Windows 用户建议执行一次）**
 
 ```bash
 git lfs install
 ```
 
-**克隆仓库**
+成功时一般会看到 `Git LFS initialized` 一类提示。
 
-第一行换成你在托管平台复制的 **HTTPS 或 SSH** 地址；第二行换成 **`git clone` 后生成的目录名**（勿照抄示例）。
+---
+
+**（四）克隆远程仓库到本机**
+
+把下面命令里的 `https://github.com/你的用户名/你的仓库名.git` 换成你在 GitHub 网页上 **Code → HTTPS**（或 SSH）里**复制下来的整段地址**（不要带尖括号）：
 
 ```bash
-git clone https://github.com/用户名/仓库名.git
-cd 仓库名
+git clone https://github.com/你的用户名/你的仓库名.git
 ```
 
-**拉取 LFS 对象（必做）**
+执行结束后，当前目录下会出现一个与仓库同名的文件夹。
+
+---
+
+**（五）进入仓库根目录**
+
+把 `你的仓库名` 换成上一步 **`git clone` 实际生成的文件夹名**（与 GitHub 仓库名通常一致；若在别的盘，可写绝对路径，例如 `cd D:\CodingProjects\你的仓库名`）：
+
+```bash
+cd 你的仓库名
+```
+
+可选：确认已在正确目录（应能看到 `index.html`；**不是 Git 命令**，仅 Windows 下列目录用）：
+
+在 **cmd / PowerShell** 中：
+
+```bash
+dir
+```
+
+在 **Git Bash** 中：
+
+```bash
+ls
+```
+
+---
+
+**（六）拉取 LFS 大文件（必做，否则 mp4 等可能无法播放）**
+
+仍在**仓库根目录**下执行：
 
 ```bash
 git lfs pull
 ```
 
-**自检**
+若提示已是最新或没有需要下载的，一般也说明已拉过；若之前拉失败，可再试一次下面两条（先 fetch 再检出，与 `pull` 二选一或作为补救）：
 
-*   **`会展地图高保真/`**：应有 **体积正常的 .mp4 文件**；若极小或打不开，多为未拉 LFS。
-*   **`index.html`**：应为大段 HTML；若以 `version https://git-lfs.github.com/spec/v1` 开头，仍是 **指针**，请再执行 `git lfs pull` 或检查远程 LFS。
+```bash
+git lfs fetch --all
+```
 
-### 4.3 在仓库根目录启动本地 HTTP 服务
+```bash
+git lfs checkout
+```
+
+---
+
+**（七）可选：查看当前仓库里哪些路径由 LFS 管理**
+
+```bash
+git lfs ls-files
+```
+
+---
+
+**（八）可选：查看工作区是否干净、是否在正确分支**
+
+```bash
+git status
+```
+
+---
+
+**自检（不用敲命令，用资源管理器或记事本看即可）**
+
+*   **`会展地图高保真/`** 下应有 **体积正常** 的 `.mp4`；若文件极小或打不开，多半是 **（六）** 未成功。  
+*   **`index.html`** 应为大段 HTML；若以 `version https://git-lfs.github.com/spec/v1` 开头，仍是 **LFS 指针**，请回到 **（六）** 重试，并确认 **（二）** 里 `git lfs version` 正常。
+
+### 4.3 在仓库根目录启动本地 HTTP 服务（Windows）
 
 **用途**：在 **`http://localhost`** 或 **HTTPS** 下才能注册 **`firebase-messaging-sw.js`**，从而完整测试 **FCM**；**`file://`** 下代码会 **跳过** Service Worker。
 
-终端当前目录为 **仓库根目录**（可见 `index.html` 与 `firebase-messaging-sw.js`）。
+先用 **`cd`** 进到 **仓库根目录**（该目录下应能直接看到 `index.html` 与 `firebase-messaging-sw.js`）。可在资源管理器中打开该文件夹，在地址栏输入 **`powershell`** 回车，即在此目录打开 PowerShell。
 
-**Node**
+**方式一：已安装 Node.js 时**
+
+在 **PowerShell / cmd / Git Bash** 中执行：
 
 ```bash
 npx --yes serve .
 ```
 
-按终端输出的 **`http://localhost:端口`** 访问。
+窗口里会打印 **`http://localhost:某端口`**，用本机浏览器打开即可。
 
-**Python 3**
+**方式二：已安装 Python 3 时**
+
+在同一目录下执行（若 `python` 无效，可改用 Windows 自带的启动器 **`py`**）：
 
 ```bash
 python -m http.server 8080
 ```
 
-浏览器访问 `http://localhost:8080/`（端口与命令一致）。
+或：
 
-**其他**：VS Code Live Server、Caddy、Nginx 等，只要根目录静态托管且 **localhost 或 HTTPS**，并同源可访问 **`index.html`** 与 **`firebase-messaging-sw.js`**。
+```bash
+py -m http.server 8080
+```
+
+浏览器访问 `http://localhost:8080/`（端口与命令中一致）。
+
+**方式三：Visual Studio Code（Windows）**  
+安装 **Live Server** 扩展，在 VS Code 中打开仓库根目录，对 `index.html` 使用 **「Open with Live Server」**，按扩展提示的 **`http://127.0.0.1:端口`** 访问；同样需保证站点根即仓库根，且能访问到 **`firebase-messaging-sw.js`**。
 
 ### 4.4 本地文件协议与 HTTP
 
 *   **`file://` 双击 `index.html`**：最省事；**不注册** Service Worker，**FCM 不测全**；Firebase 仍会尝试初始化，占位时控制台有报错属正常。
-*   **本地 HTTP**：便于测 **Service Worker、通知、FCM token**；需 Node/Python 等之一。
+*   **本地 HTTP**：便于测 **Service Worker、通知、FCM token**；需在 Windows 上按 **第 4.3 节** 安装 **Node.js** 或 **Python 3**（或使用 VS Code Live Server）之一。
 
 ### 4.5 相对路径与 `会展地图高保真/`
 
 *   页面引用 **`./会展地图高保真/...` 下的 mp4 等**；请保持该目录与 **`index.html`** 的相对位置不变，否则 **404**。
-*   **mp4 本体由 Git LFS 管理**：除克隆外务必 **`git lfs pull`**（见 [第 4.2 节](#42-git-lfs-安装与拉取)）。
+*   **mp4 本体由 Git LFS 管理**：除克隆外务必按 **第 4.2 节** 执行 **`git lfs pull`**（及前文所列 Git 命令）。
 
 ---
 
