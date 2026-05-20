@@ -1,4 +1,4 @@
-# StarTrack·星途
+# StarTrack·星迹
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](#)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](#)
@@ -14,7 +14,7 @@
 
 ## 1. 项目简介
 
-**StarTrack·星途** 是一款面向演唱会与大型会展（MICE）场景的 **移动端 Web 单页应用（SPA）** 原型，演示从 **活动发现**、**行程与路线**、**现场地图与安全**、**粉丝社区与内容**、**出行协作** 到 **个人中心** 的完整动线。入口是仓库根目录下的 **`index.html`**。下文 **「仓库根目录」** 指克隆后的项目根路径（与 `index.html` 同级）。
+**StarTrack·星迹** 是一款面向演唱会与大型会展（MICE）场景的 **移动端 Web 单页应用（SPA）** 原型，演示从 **活动发现**、**行程与路线**、**现场地图与安全**、**粉丝社区与内容**、**出行协作** 到 **个人中心** 的完整动线。入口是仓库根目录下的 **`index.html`**。下文 **「仓库根目录」** 指克隆后的项目根路径（与 `index.html` 同级）。
 
 样式与图标来自 **Tailwind CSS**、**Font Awesome** 的 **CDN**，本机需要能访问公网。
 
